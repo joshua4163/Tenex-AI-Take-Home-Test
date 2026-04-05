@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.db
+.DS_Store
+large_zscaler_logs.csv
+
+# Node
+node_modules/
+.next/
+dist/
+.env
+
+echo "backend/logs.db
+large_zscaler_logs.csv
+*.db
+*.csv
+venv/
+node_modules/
+.next/
+.DS_Store" > .gitignore
