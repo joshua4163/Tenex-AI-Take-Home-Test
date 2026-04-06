@@ -59,5 +59,9 @@ Loading a 10GB file into browser memory is a recipe for a crash. Here is how I h
 * **Database:** SQLite (Zero-config, file-based storage for persistence).
 * **DevOps:** Docker, Docker Compose.
 
-### 📊 Testing
-I've included a `generate_large_logs.py` script. You can use it to generate a synthetic 1-million-row log file to see the pagination and ML engine in action.
+### 📊 Testing & Sample Data
+To test the application immediately, you can use the following:
+1. **Sample Data:** I have included a `sample_logs.csv` in the root directory with pre-configured anomalies for you to upload.
+2. **Bulk Testing:** If you want to test the 10GB scalability, run the generator script:
+   ```bash
+   python generate_large_logs.py
