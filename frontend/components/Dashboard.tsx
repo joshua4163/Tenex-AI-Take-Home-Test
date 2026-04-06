@@ -52,7 +52,7 @@ export default function Dashboard() {
 
     try {
       // Points to Vercel rewrite route
-      const res = await fetch('/api/analyze', { 
+      const res = await fetch('http://localhost:8000/analyze', { 
         method: 'POST', 
         body: formData 
       });
