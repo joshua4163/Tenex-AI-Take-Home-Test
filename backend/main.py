@@ -8,7 +8,6 @@ import numpy as np
 
 app = FastAPI()
 
-# Frontend connectivity
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,18 +15,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# AI Model Initialization (Global ga unte fast ga untundi)
+# AI Model Initialization
 model = IsolationForest(contamination=0.2, random_state=42)
 
 def process_remaining_chunks(file_content):
-    """
-    Background lo 10GB data ni process chese function.
-    User ki response vellaka idi silent ga run avthundi.
-    """
+    # Background processing logic
     conn = sqlite3.connect('logs.db')
-    # Chunksize use chesthe memory crash avvadu
     for chunk in pd.read_csv(io.BytesIO(file_content), chunksize=100000):
-        # ... (AI analysis and DB storage logic ikkada untundi) ...
         pass
     conn.close()
 
@@ -36,26 +30,66 @@ async def analyze_logs(background_tasks: BackgroundTasks, file: UploadFile = Fil
     try:
         contents = await file.read()
         
-        # ⚡ FAST PATH: Only read first 50,000 rows for immediate UI response
-        # Dheenivalla 10GB file aina 2 seconds lo results vasthayi
+        # ⚡ Read first 50k rows for speed
         df = pd.read_csv(io.BytesIO(contents), nrows=50000)
         
-        # Data Cleaning
+        # Data Cleaning & Mapping
         mapping = {'time': 'timestamp', 'login': 'source_ip', 'url': 'url', 'totalsize': 'bytes_sent', 'risk_score': 'status'}
         df = df.rename(columns=mapping)
         df['status'] = pd.to_numeric(df['status'], errors='coerce').fillna(0)
         df['bytes_sent'] = pd.to_numeric(df['bytes_sent'], errors='coerce').fillna(0)
 
-        # AI Prediction (Fast Inference)
+        # 🧠 AI ANALYSIS
         features = df[['status', 'bytes_sent']]
-        df['is_anomaly'] = model.fit_predict(features) == -1
         
-        # Background Task: Start processing the rest of the 10GB
+        # 1. Predict Anomalies (-1 = anomaly, 1 = normal)
+        predictions = model.fit_predict(features)
+        
+        # 2. Get Decision Scores (Lower/Negative means more anomalous)
+        raw_scores = model.decision_function(features)
+        
+        # 3. Logic for Results, Confidence, and Reasons
+        results = []
+        
+        # Mean bytes for anomaly reasoning
+        mean_bytes = df['bytes_sent'].mean()
+
+        for i in range(len(df)):
+            is_anomaly = bool(predictions[i] == -1)
+            
+            # --- Confidence Score Calculation ---
+            # Decision function negative values indicate outliers.
+            # Normalizing it to a 0-100 scale for UI.
+            conf = 0
+            reason = "Normal activity pattern."
+            
+            if is_anomaly:
+                # Calculate confidence based on how far it is from the boundary
+                conf = round(min(abs(raw_scores[i]) * 500, 99.9), 2) 
+                
+                # --- Reasoning Engine ---
+                if df.iloc[i]['status'] > 80:
+                    reason = "Critical Zscaler Risk Score detected (High Threat)."
+                elif df.iloc[i]['bytes_sent'] > mean_bytes * 10:
+                    reason = "Anomalous Data Volume: Potential Data Exfiltration detected."
+                elif df.iloc[i]['status'] > 50 and df.iloc[i]['bytes_sent'] > mean_bytes * 3:
+                    reason = "Correlation Alert: Suspicious risk score and elevated data transfer."
+                else:
+                    reason = "Behavioral Outlier: Pattern deviates from baseline user activity."
+
+            # Build record
+            record = df.iloc[i].to_dict()
+            record.update({
+                "is_anomaly": is_anomaly,
+                "confidence": conf if is_anomaly else 0,
+                "reason": reason
+            })
+            results.append(record)
+        
         background_tasks.add_task(process_remaining_chunks, contents)
 
-        # JSON Ready format
-        final_df = df.fillna(0).replace([np.inf, -np.inf], 0)
-        return final_df.to_dict(orient="records")
+        # Clean up JSON formatting
+        return pd.DataFrame(results).fillna(0).replace([np.inf, -np.inf], 0).to_dict(orient="records")
 
     except Exception as e:
         return {"error": str(e)}
