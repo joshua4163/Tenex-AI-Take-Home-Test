@@ -29,7 +29,7 @@ async def analyze_logs(file: UploadFile = File(...)):
         contents = await file.read()
         
         # ⚡ Read first 10k rows (Vercel has a 10s timeout, 50k might be too slow)
-        df = pd.read_csv(io.BytesIO(contents), nrows=10000)
+        df = pd.read_csv(io.BytesIO(contents), nrows=2000)
         
         # Data Cleaning & Mapping
         mapping = {
