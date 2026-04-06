@@ -2,7 +2,19 @@
 
 SentinelFlow is a full-stack security dashboard built to process massive Zscaler web proxy logs—even those hitting the 10GB+ mark—without freezing your browser or crashing the server. It moves away from rigid, rule-based detection and uses Unsupervised Machine Learning to spot hidden threats.
 
-### 🚀 Getting Started
+### 🐳 One-Command Setup (Recommended)
+To make the evaluation as easy as possible, the entire app is containerized. You don't need to install Node.js or Python locally. Just run:
+
+```bash
+docker-compose up --build
+```
+* **Dashboard:** `http://localhost:3000`
+* **Backend API:** `http://localhost:8000`
+* **Login:** Username: `admin` | Password: `password`
+
+---
+
+### 🚀 Manual Local Setup
 
 **1. Backend (FastAPI)**
 ```bash
@@ -11,15 +23,12 @@ python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
-*Server runs at: `http://localhost:8000`*
 
 **2. Frontend (Next.js)**
 ```bash
 cd frontend
 npm install && npm run dev
 ```
-*Dashboard runs at: `http://localhost:3000`*
-* **Login Credentials:** Username: `admin` | Password: `password`
 
 ---
 
@@ -38,7 +47,7 @@ Loading a 10GB file into browser memory is a recipe for a crash. Here is how I h
 * **Dynamic Pagination:** The frontend only renders **1,000 rows at a time**. By using a "Next/Previous" navigation system, the UI stays lightning-fast even if you're navigating through 5 million records.
 
 ### 🛡️ Core Features
-* **Secure Access:** A protected login gateway (Session-persistent) to ensure only authorized analysts access the data.
+* **Vibrant Security Portal:** A modern, high-contrast login gateway with session persistence.
 * **Confidence Scoring:** Every anomaly is given a 0-100% score based on the model's decision function, helping analysts prioritize what to investigate first.
 * **Human-Readable Reasoning:** Instead of just flagging a row, the app explains *why* (e.g., "Anomalous Data Volume detected for High-Risk URL").
 
@@ -47,7 +56,8 @@ Loading a 10GB file into browser memory is a recipe for a crash. Here is how I h
 ### 🛠️ Tech Stack
 * **Frontend:** Next.js 14, TypeScript, Tailwind CSS (Modern Glassmorphism UI).
 * **Backend:** FastAPI (Python 3.11), Scikit-learn (ML Engine), Pandas.
-* **Database:** SQLite (For persistent log storage and fast retrieval).
+* **Database:** SQLite (Zero-config, file-based storage for persistence).
+* **DevOps:** Docker, Docker Compose.
 
-### 📊Testing
+### 📊 Testing
 I've included a `generate_large_logs.py` script. You can use it to generate a synthetic 1-million-row log file to see the pagination and ML engine in action.
