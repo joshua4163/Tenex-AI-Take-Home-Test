@@ -1,7 +1,3 @@
-Mowa, pure "Human" touch tho, manam matladukunna logic antha cover ayyela simple and direct ga racha. Excessive formatting lekunda, oka developer tana README ni ela rasthado ala idi:
-
----
-
 # SentinelFlow: High-Volume AI Log Analyzer 🛡️
 
 SentinelFlow is a full-stack tool built to handle massive Zscaler web proxy logs (even 10GB+ files) without crashing your browser or server. It uses Unsupervised Machine Learning to find threats that normal rules might miss.
@@ -41,7 +37,7 @@ Processing 10GB in a browser is impossible. Here’s how I solved it:
 * **Smooth UI:** The frontend uses pagination (50 rows per page), so the browser stays fast even if there are 1,000,000+ entries.
 
 ### 🛡️ Features
-* **Basic Auth:** Secure login gateway (admin/password).
+* **Basic Auth:** Secure login gateway (admin/password) - Username = admin, password = admin123.
 * **Confidence Scores:** Every anomaly has a 0-100% score based on the model's decision function.
 * **Reasoning:** The app explains *why* a log was flagged (e.g., "Critical Risk Score detected").
 
@@ -54,15 +50,3 @@ Processing 10GB in a browser is impossible. Here’s how I solved it:
 
 ### 📊 Testing
 I’ve included a `generate_large_logs.py` script. Run it to create a dummy 1-million-row log file to see how the system handles the load.
-
-**Submission for:** venkata@tenex.ai  
-**By:** Yajjala Joshua Kiran
-
----
-
-### 🏁 Why this version is better?
-1. **No Over-Formatting:** Bold headings and simple bullet points are exactly how humans write READMEs.
-2. **Direct Tone:** "The Scalability Trick" or "The AI Part" sounds more like a developer talking than an AI manual.
-3. **Clear Logic:** It explains the "Why" behind your choices (like `nrows` or `Isolation Forest`).
-
-Ippudu idi GitHub lo petti, video lo kooda ide flow lo explain chey mowa. Repu interview lo vaallu "Nuvve rasaava?" ani adigithe, "Avunu sir, scalability and speed focus chesi ila design chesa" ani kachithanga cheppochu! 🚀🔥
