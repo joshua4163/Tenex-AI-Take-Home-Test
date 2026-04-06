@@ -13,7 +13,7 @@ export default function Home() {
     if (user === "admin" && pass === "admin123") {
       setIsLoggedIn(true);
     } else {
-      alert("Chudu mowa, credentials thappu! (Try: admin / admin123)");
+      alert("these are the creds (Try: admin / admin123)");
     }
   };
 
