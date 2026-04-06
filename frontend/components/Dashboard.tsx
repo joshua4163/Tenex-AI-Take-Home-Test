@@ -49,7 +49,7 @@ export default function Dashboard() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('http://localhost:8000/analyze', { method: 'POST', body: formData });
+      const res = await fetch('/api/analyze', { method: 'POST', body: formData });
       const data = await res.json();
       setLogs(data);
       setCurrentPage(1); 
