@@ -4,7 +4,7 @@ import random
 from datetime import datetime, timedelta
 
 def generate_bulk_zscaler_logs(num_rows=1000000):
-    print(f"Generating {num_rows} logs... Idhi konchem time paduthundi mowa!")
+    print(f"Generating {num_rows} logs... Takes some time")
     
     start_time = datetime.now()
     log_data = []
@@ -38,7 +38,7 @@ def generate_bulk_zscaler_logs(num_rows=1000000):
     df.loc[random.sample(range(num_rows), 500), 'totalsize'] = 985000000 # ~900MB
     
     df.to_csv('large_zscaler_logs.csv', index=False)
-    print("Success! 'large_zscaler_logs.csv' ready ayindi.")
+    print("Success! 'large_zscaler_logs.csv' ready.")
 
 if __name__ == "__main__":
     generate_bulk_zscaler_logs(1000000) # Change to 10,000,000 if you want 10x more
