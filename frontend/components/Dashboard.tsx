@@ -45,16 +45,30 @@ export default function Dashboard() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
+
     try {
-      const res = await fetch('/api/analyze', { method: 'POST', body: formData });
+      // Points to Vercel rewrite route
+      const res = await fetch('/api/analyze', { 
+        method: 'POST', 
+        body: formData 
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Server Error:", errorText);
+        throw new Error("Analysis failed. Backend might be timing out or file is too large.");
+      }
+
       const data = await res.json();
       setLogs(data);
       setCurrentPage(1); 
-    } catch (err) {
-      alert("Backend error! Make sure Python server is running.");
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Backend error! Is the Python server running?");
     } finally {
       setLoading(false);
     }
@@ -68,11 +82,10 @@ export default function Dashboard() {
   const currentRows = logs.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(logs.length / rowsPerPage);
 
-  // --- LOGIN VIEW ---
+  // --- LOGIN VIEW (VIBRANT CYBER LOOK) ---
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 font-sans relative overflow-hidden">
-        {/* Animated Background Glows */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse delay-700"></div>
 
