@@ -65,3 +65,9 @@ To test the application immediately, you can use the following:
 2. **Bulk Testing:** If you want to test the 10GB scalability, run the generator script:
    ```bash
    python generate_large_logs.py
+
+
+### 💡 One small catch:
+In your manual setup for the backend:
+`python -m venv venv && source venv/bin/activate`
+**Note:** If you are on **Windows**, u need to run `venv\Scripts\activate`. It’s a tiny detail, but adding a small comment like `source venv/bin/activate # Use venv\Scripts\activate on Windows` makes you look very thoughtful.
