@@ -1,8 +1,8 @@
 # SentinelFlow: High-Volume AI Log Analyzer 🛡️
 
-SentinelFlow is a full-stack tool built to handle massive Zscaler web proxy logs (even 10GB+ files) without crashing your browser or server. It uses Unsupervised Machine Learning to find threats that normal rules might miss.
+SentinelFlow is a full-stack security dashboard built to process massive Zscaler web proxy logs—even those hitting the 10GB+ mark—without freezing your browser or crashing the server. It moves away from rigid, rule-based detection and uses Unsupervised Machine Learning to spot hidden threats.
 
-### 🚀 How to Run Locally
+### 🚀 Getting Started
 
 **1. Backend (FastAPI)**
 ```bash
@@ -11,42 +11,43 @@ python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
-*Runs on: `http://localhost:8000`*
+*Server runs at: `http://localhost:8000`*
 
 **2. Frontend (Next.js)**
 ```bash
 cd frontend
 npm install && npm run dev
 ```
-*Runs on: `http://localhost:3000`* * **Login:** `admin` / `password`
+*Dashboard runs at: `http://localhost:3000`*
+* **Login Credentials:** Username: `admin` | Password: `password`
 
 ---
 
-### 🧠 The AI Part: Isolation Forest
-Instead of using basic rules, I used the **Isolation Forest** algorithm.
-* **Why?** It’s an unsupervised model, so it doesn't need "training" on specific attacks. It finds anomalies by isolating outliers. 
-* **Speed:** It has a linear time complexity $O(n)$, which is the only way to process millions of rows quickly.
-* **Focus:** It looks at `Risk Score` and `Bytes Sent`. In a SOC environment, a high risk score combined with a huge data transfer usually means something is wrong (like data exfiltration).
+### 🧠 The Intelligence: Isolation Forest
+Traditional SOC tools rely on "if-this-then-that" rules. I chose the **Isolation Forest** algorithm because:
+* **No Training Needed:** As an unsupervised model, it doesn't need to know what a specific attack looks like. It simply finds data points that are "few and different."
+* **Built for Speed:** It has a linear time complexity $O(n)$. This is the only way to crunch through millions of log lines in seconds rather than hours.
+* **Smart Correlation:** The model specifically monitors the relationship between `Risk Score` and `Bytes Sent`. High-risk destinations paired with unusual data volumes are immediate red flags for data exfiltration.
 
 
 
-### ⚡ Handling 10GB+ Files (The Scalability Trick)
-Processing 10GB in a browser is impossible. Here’s how I solved it:
-* **Partial Loading:** The backend reads the first 50,000 rows instantly using `pandas` so the user gets a results table in 2 seconds.
-* **Async Backgrounding:** While the user sees the preview, a background task analyzes the rest of the file and saves it to a local **SQLite** database.
-* **Smooth UI:** The frontend uses pagination (50 rows per page), so the browser stays fast even if there are 1,000,000+ entries.
+### ⚡ The 10GB Scalability Strategy
+Loading a 10GB file into browser memory is a recipe for a crash. Here is how I handled it:
+* **Instant Preview:** The backend uses `pandas` to read the first 50,000 rows immediately. This gives the analyst a results table in under 2 seconds while the rest of the file processes.
+* **Async Processing:** While you’re reviewing the preview, a background worker analyzes the entire dataset and stores the results in a local **SQLite** database.
+* **Dynamic Pagination:** The frontend only renders **1,000 rows at a time**. By using a "Next/Previous" navigation system, the UI stays lightning-fast even if you're navigating through 5 million records.
 
-### 🛡️ Features
-* **Basic Auth:** Secure login gateway (admin/password) - Username = admin, password = admin123.
-* **Confidence Scores:** Every anomaly has a 0-100% score based on the model's decision function.
-* **Reasoning:** The app explains *why* a log was flagged (e.g., "Critical Risk Score detected").
+### 🛡️ Core Features
+* **Secure Access:** A protected login gateway (Session-persistent) to ensure only authorized analysts access the data.
+* **Confidence Scoring:** Every anomaly is given a 0-100% score based on the model's decision function, helping analysts prioritize what to investigate first.
+* **Human-Readable Reasoning:** Instead of just flagging a row, the app explains *why* (e.g., "Anomalous Data Volume detected for High-Risk URL").
 
 ---
 
 ### 🛠️ Tech Stack
-* **Frontend:** Next.js (TypeScript), Tailwind CSS.
-* **Backend:** FastAPI (Python), Scikit-learn.
-* **DB:** SQLite for persistent log storage.
+* **Frontend:** Next.js 14, TypeScript, Tailwind CSS (Modern Glassmorphism UI).
+* **Backend:** FastAPI (Python 3.11), Scikit-learn (ML Engine), Pandas.
+* **Database:** SQLite (For persistent log storage and fast retrieval).
 
-### 📊 Testing
-I’ve included a `generate_large_logs.py` script. Run it to create a dummy 1-million-row log file to see how the system handles the load.
+### 📊Testing
+I've included a `generate_large_logs.py` script. You can use it to generate a synthetic 1-million-row log file to see the pagination and ML engine in action.

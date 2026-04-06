@@ -1,32 +1,35 @@
 "use client";
-import { useState } from 'react';
-import { ShieldAlert, UploadCloud, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, Lock, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShieldAlert, UploadCloud, LogOut, CheckCircle, AlertTriangle, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 
 export default function Dashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
   
-  const [allLogs, setAllLogs] = useState<any[]>([]); 
-  const [currentPage, setCurrentPage] = useState(1);
+  // Data States
+  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const rowsPerPage = 50; 
+  
+  // --- PAGINATION STATES ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 1000; // Okko page ki 1000 rows
 
-  // --- Basic Auth Logic ---
+  useEffect(() => {
+    setIsMounted(true);
+    if (sessionStorage.getItem('isLoggedIn') === 'true') setIsLoggedIn(true);
+  }, []);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === 'admin' && password === 'password') {
+      sessionStorage.setItem('isLoggedIn', 'true');
       setIsLoggedIn(true);
     } else {
-      alert("Wrong credentials mowa! Use admin/password.");
+      alert("Wrong Credentials!");
     }
   };
-
-  // --- Existing Pagination Logic ---
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = allLogs.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(allLogs.length / rowsPerPage);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,175 +38,119 @@ export default function Dashboard() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('http://localhost:8000/analyze', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch('http://localhost:8000/analyze', { method: 'POST', body: formData });
       const data = await res.json();
-      setAllLogs(data);
-      setCurrentPage(1); 
+      setLogs(data);
+      setCurrentPage(1); // Kotha file upload chesinappudu 1st page ki vellali
     } catch (err) {
-      alert("Backend disconnect ayindi!");
+      alert("Backend error!");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- 1. Login View ---
+  if (!isMounted) return null;
+
+  // --- PAGINATION CALCULATIONS ---
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = logs.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(logs.length / rowsPerPage);
+
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-500">
-          <div className="flex flex-col items-center mb-8">
-            <div className="bg-blue-600/20 p-4 rounded-full mb-4">
-              <ShieldAlert className="text-blue-500 w-10 h-10" />
-            </div>
-            <h1 className="text-2xl font-bold text-white tracking-tighter">TENEX<span className="text-blue-500">.SOC</span> LOGIN</h1>
-            <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest">Secure Access Gateway</p>
-          </div>
-          
+      <div className="min-h-screen bg-[#05070a] flex items-center justify-center p-6">
+        <div className="bg-[#0f172a] border border-slate-800 p-10 rounded-[2rem] w-full max-w-sm shadow-2xl text-center">
+          <ShieldAlert className="mx-auto text-blue-500 mb-4" size={40} />
+          <h1 className="text-white font-bold text-xl mb-6">SEC-ANALYZE LOGIN</h1>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
-              <input 
-                type="text" 
-                placeholder="Username" 
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 pl-11 pr-4 text-slate-200 focus:outline-none focus:border-blue-500 transition-all"
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
-              <input 
-                type="password" 
-                placeholder="Password" 
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 pl-11 pr-4 text-slate-200 focus:outline-none focus:border-blue-500 transition-all"
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/20 active:scale-95"
-            >
-              Sign In
-            </button>
+            <input type="text" placeholder="Username" className="w-full bg-[#1e293b] border border-slate-700 rounded-xl py-3 px-4 text-white outline-none" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input type="password" placeholder="Password" className="w-full bg-[#1e293b] border border-slate-700 rounded-xl py-3 px-4 text-white outline-none" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-500 transition">Sign In</button>
           </form>
-          <p className="text-center text-slate-600 text-[10px] mt-6 uppercase tracking-tight">
-            Hint: admin / password
-          </p>
         </div>
       </div>
     );
   }
 
-  // --- 2. Main Dashboard View (Only shown after login) ---
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-6 font-sans">
-      <nav className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="text-blue-500 w-8 h-8" />
-          <span className="font-bold text-2xl tracking-tighter text-white">TENEX<span className="text-blue-500">.SOC</span></span>
+    <div className="min-h-screen bg-[#020617] text-slate-200">
+      <nav className="flex items-center justify-between px-10 py-5 bg-[#0f172a]/80 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <Activity className="text-blue-500" />
+          <span className="font-black text-xl tracking-tighter uppercase italic">Sentinel<span className="text-blue-500">Flow</span></span>
         </div>
-        <div className="flex items-center gap-4">
-            <div className="text-[10px] text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-                User: <span className="text-blue-400 font-mono italic">admin</span>
-            </div>
-            <button onClick={() => setIsLoggedIn(false)} className="text-[10px] text-red-500 hover:underline uppercase font-bold">Logout</button>
-        </div>
+        <button onClick={() => { sessionStorage.clear(); window.location.reload(); }} className="text-xs font-bold text-slate-500 hover:text-red-400 flex items-center gap-2 uppercase tracking-widest">
+          <LogOut size={14} /> Logout
+        </button>
       </nav>
 
-      <div className="max-w-7xl mx-auto">
-        {/* Upload Section */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center mb-8 shadow-xl">
-          <UploadCloud size={40} className="mx-auto mb-3 text-blue-500 opacity-80" />
-          <h2 className="text-xl font-semibold text-white mb-1">AI Threat Detection Engine</h2>
-          <p className="text-slate-400 text-sm mb-6 font-light">Analyzing 10GB+ Zscaler logs using Unsupervised Isolation Forest</p>
-          
+      <main className="p-8 max-w-7xl mx-auto">
+        <div className="bg-[#0f172a] border-2 border-dashed border-blue-500/30 rounded-[2.5rem] p-12 flex flex-col items-center justify-center mb-10 shadow-2xl">
+          <UploadCloud size={48} className="text-blue-400 mb-4" />
           <input type="file" id="log-file" className="hidden" onChange={handleUpload} />
-          <label htmlFor="log-file" className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg font-bold transition-all inline-block shadow-lg shadow-blue-900/20 active:scale-95">
-            {loading ? "AI Analyzing Patterns..." : "Upload Zscaler Logs"}
+          <label htmlFor="log-file" className="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-black tracking-widest transition-all">
+            {loading ? "ANALYZING..." : "UPLOAD LOGS"}
           </label>
         </div>
 
-        {/* Results Section */}
-        {allLogs.length > 0 && (
-          <div className="space-y-4 animate-in fade-in duration-700">
-            <div className="flex justify-between items-center px-2">
-              <p className="text-sm text-slate-400">
-                Processed <span className="text-white font-bold">{allLogs.length.toLocaleString()}</span> logs
-              </p>
+        {logs.length > 0 && (
+          <div className="space-y-6">
+            {/* --- NAVIGATION BUTTONS --- */}
+            <div className="flex justify-between items-center bg-[#0f172a] p-4 rounded-2xl border border-slate-800">
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                Total Logs: <span className="text-blue-400">{logs.length.toLocaleString()}</span>
+              </div>
               
               <div className="flex items-center gap-4">
                 <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="p-2 bg-slate-900 border border-slate-800 rounded-md disabled:opacity-30 hover:bg-slate-800 transition"
+                  className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 disabled:opacity-30 transition"
                 >
                   <ChevronLeft size={20} />
                 </button>
-                <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">Page {currentPage} / {totalPages}</span>
+                
+                <span className="text-sm font-mono font-bold">
+                  PAGE {currentPage} / {totalPages}
+                </span>
+
                 <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="p-2 bg-slate-900 border border-slate-800 rounded-md disabled:opacity-30 hover:bg-slate-800 transition"
+                  className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 disabled:opacity-30 transition"
                 >
                   <ChevronRight size={20} />
                 </button>
               </div>
             </div>
 
-            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
+            {/* --- TABLE --- */}
+            <div className="bg-[#0f172a] rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-800/50 text-slate-400 text-[10px] uppercase font-bold tracking-[0.2em] border-b border-slate-700">
-                  <tr>
-                    <th className="p-4">Timestamp / IP</th>
-                    <th className="p-4">Resource Access</th>
-                    <th className="p-4 text-center">AI Verdict</th>
-                    <th className="p-4 text-center">Confidence</th>
+                <thead>
+                  <tr className="bg-[#1e293b]/50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
+                    <th className="p-5">Timestamp</th>
+                    <th className="p-5">Source IP</th>
+                    <th className="p-5">Resource</th>
+                    <th className="p-5 text-center">AI Verdict</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm divide-y divide-slate-800">
+                <tbody className="text-sm">
                   {currentRows.map((log, i) => (
-                    <tr key={i} className={`transition-colors ${log.is_anomaly ? 'bg-red-500/10 hover:bg-red-500/15' : 'hover:bg-slate-800/40'}`}>
-                      <td className="p-4">
-                        <div className="text-[10px] font-mono text-slate-500 mb-1">{log.timestamp}</div>
-                        <div className="font-medium text-slate-200">{log.source_ip}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="truncate max-w-xs text-slate-400 text-xs mb-1">{log.url}</div>
-                        <div className="text-[10px] text-slate-500 uppercase font-mono">Risk: {log.status} | Size: {log.bytes_sent}B</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex flex-col items-center">
-                          {log.is_anomaly ? (
-                            <>
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-900/30 text-red-500 text-[10px] font-black border border-red-500/20 mb-1">
-                                <AlertTriangle size={12} /> ANOMALY
-                              </span>
-                              <div className="text-[9px] text-red-400/80 max-w-[150px] text-center leading-tight italic">
-                                {log.reason}
-                              </div>
-                            </>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-900/30 text-emerald-500 text-[10px] font-bold border border-emerald-500/20">
-                              <CheckCircle size={12} /> CLEAN
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
+                    <tr key={i} className={`border-b border-slate-800/50 transition-all ${log.is_anomaly ? 'bg-red-500/10' : 'hover:bg-slate-800/40'}`}>
+                      <td className="p-5 font-mono text-xs text-slate-400">{log.timestamp}</td>
+                      <td className="p-5 font-bold text-blue-100">{log.source_ip}</td>
+                      <td className="p-5 truncate max-w-xs text-slate-400 italic">{log.url}</td>
+                      <td className="p-5 text-center">
                         {log.is_anomaly ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="w-20 bg-slate-800 h-1 rounded-full overflow-hidden">
-                              <div 
-                                className="bg-red-500 h-full transition-all duration-1000" 
-                                style={{ width: `${log.confidence}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-[10px] font-mono text-slate-400">{log.confidence}%</span>
-                          </div>
+                          <span className="text-red-500 font-black text-[10px] bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 uppercase tracking-tighter">
+                             HIGH ANOMALY
+                          </span>
                         ) : (
-                          <div className="text-center text-slate-700 text-xs">-</div>
+                          <span className="text-emerald-400 font-bold text-[10px] opacity-60">
+                             SECURE
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -211,9 +158,14 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Bottom Info */}
+            <p className="text-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+              Showing logs {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, logs.length)}
+            </p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
