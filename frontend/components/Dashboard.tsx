@@ -1,13 +1,28 @@
 "use client";
 import { useState } from 'react';
-import { ShieldAlert, UploadCloud, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { ShieldAlert, UploadCloud, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, Lock, User } from 'lucide-react';
 
 export default function Dashboard() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
   const [allLogs, setAllLogs] = useState<any[]>([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const rowsPerPage = 50; 
 
+  // --- Basic Auth Logic ---
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'admin' && password === 'password') {
+      setIsLoggedIn(true);
+    } else {
+      alert("Wrong credentials mowa! Use admin/password.");
+    }
+  };
+
+  // --- Existing Pagination Logic ---
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = allLogs.slice(indexOfFirstRow, indexOfLastRow);
@@ -16,11 +31,9 @@ export default function Dashboard() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       const res = await fetch('http://localhost:8000/analyze', {
         method: 'POST',
@@ -30,22 +43,72 @@ export default function Dashboard() {
       setAllLogs(data);
       setCurrentPage(1); 
     } catch (err) {
-      alert("Backend disconnect ayindi mowa!");
+      alert("Backend disconnect ayindi!");
     } finally {
       setLoading(false);
     }
   };
 
+  // --- 1. Login View ---
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-500">
+          <div className="flex flex-col items-center mb-8">
+            <div className="bg-blue-600/20 p-4 rounded-full mb-4">
+              <ShieldAlert className="text-blue-500 w-10 h-10" />
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tighter">TENEX<span className="text-blue-500">.SOC</span> LOGIN</h1>
+            <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest">Secure Access Gateway</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <User className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
+              <input 
+                type="text" 
+                placeholder="Username" 
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 pl-11 pr-4 text-slate-200 focus:outline-none focus:border-blue-500 transition-all"
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 text-slate-500 w-5 h-5" />
+              <input 
+                type="password" 
+                placeholder="Password" 
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 pl-11 pr-4 text-slate-200 focus:outline-none focus:border-blue-500 transition-all"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/20 active:scale-95"
+            >
+              Sign In
+            </button>
+          </form>
+          <p className="text-center text-slate-600 text-[10px] mt-6 uppercase tracking-tight">
+            Hint: admin / password
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- 2. Main Dashboard View (Only shown after login) ---
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 p-6 font-sans">
-      {/* Header */}
       <nav className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
         <div className="flex items-center gap-2">
           <ShieldAlert className="text-blue-500 w-8 h-8" />
           <span className="font-bold text-2xl tracking-tighter text-white">TENEX<span className="text-blue-500">.SOC</span></span>
         </div>
-        <div className="text-xs text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-          Status: <span className="text-emerald-500 font-mono tracking-widest uppercase text-[10px]">System Active</span>
+        <div className="flex items-center gap-4">
+            <div className="text-[10px] text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+                User: <span className="text-blue-400 font-mono italic">admin</span>
+            </div>
+            <button onClick={() => setIsLoggedIn(false)} className="text-[10px] text-red-500 hover:underline uppercase font-bold">Logout</button>
         </div>
       </nav>
 
@@ -89,7 +152,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Enhanced Table */}
             <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-800/50 text-slate-400 text-[10px] uppercase font-bold tracking-[0.2em] border-b border-slate-700">
